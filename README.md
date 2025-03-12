@@ -10,21 +10,23 @@
 - Windows 用户：[下载 ADB](https://developer.android.com/studio/releases/platform-tools) 并解压到某个目录，然后将其添加到环境变量。
 - Linux/macOS 用户可以直接使用包管理工具安装：
   ```sh
-  sudo apt install adb  # Debian/Ubuntu
+  sudo apt install scrcpy # Debian/Ubuntu
   brew install adb      # macOS
+  
   ```
 
 ### 2. 安装 `clipper.apk`
-`clipper.apk` 用于实现剪贴板功能，在开始使用本工具前，需手动安装并启动它。
+在apk目录中`clipper.apk` 用于实现剪贴板功能，在开始使用本工具前，需手动安装并启动它。
 
 ```sh
 adb install clipper.apk
-adb shell am start-service com.koushikdutta.clipboard/.ClipboardService
+ice
 ```
-如果无法写入剪贴板，请检查 `clipper.apk` 是否正确安装并启动。
+若出现粘贴问题大概率是clipper.apk或者没有启动
 安装模块
 ```sh
 pip install opencv-python numpy ppadb
+pip install PyQt6
 ```
 ## 文件说明
 - `adb_click.py`：主程序，执行自动评论任务。

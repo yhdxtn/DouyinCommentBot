@@ -1,5 +1,7 @@
 import random
 import time
+import os
+import threading
 from ppadb.client import Client as AdbClient
 
 def connect_to_devices():
@@ -91,22 +93,39 @@ def press_enter_key(device):
     print(f"设备 {device.serial}: 模拟回车键提交输入")
     device.shell("input keyevent 66")  # 回车键
 
-def main():
+def list_text_files():
     """
-    主函数，连接设备并模拟点击、粘贴与提交，每 15 秒循环一次
+    列出 text 目录下所有的 txt 文件，并显示它们的序号
     """
-    print("正在连接到设备...")
-    device = connect_to_device()  # 连接到设备
-    print(f"已连接设备: {device}")
-    
+    text_dir = 'text'
+    if not os.path.exists(text_dir):
+        print(f"目录 {text_dir} 不存在，请确保该目录存在。")
+        exit(1)
+
+    txt_files = [f for f in os.listdir(text_dir) if f.endswith('.txt')]
+
+    if not txt_files:
+        print(f"目录 {text_dir} 下没有找到 txt 文件。")
+        exit(1)
+
+    print("可用的文本文件:")
+    for i, txt_file in enumerate(txt_files, 1):
+        print(f"{i}. {txt_file}")
+
+    return txt_files
+
+def run_on_device(device, file_path):
+    """
+    在设备上执行自动化任务
+    """
     while True:
-        # 模拟点击 (300, 2950) 坐标
-        click_on_device(device, 300, 2950)
-        
-        # 获取同目录下的 text.txt 中的随机一行文本
-        random_text = get_random_text_from_file('text.txt')
-        
-        # 将文本复制到设备剪贴板
+        # 模拟点击 (100, 1450) 坐标
+        click_on_device(device, 100, 1450)
+
+        # 获取随机文本
+        random_text = get_random_text_from_file(file_path)
+
+        # 复制文本到设备剪贴板
         copy_text_to_clipboard(device, random_text)
 
         # 模拟粘贴操作
@@ -115,8 +134,42 @@ def main():
         # 模拟回车提交
         press_enter_key(device)
 
-        # 等待 15 秒后再进行下一次操作
-        time.sleep(20)
+        # 等待 30 秒后再进行下一次操作
+        time.sleep(40)
+
+def main():
+    """
+    主函数，连接多个设备，并让它们同时执行不同的任务
+    """
+    print("正在连接设备...")
+    devices = connect_to_devices()
+
+    # 列出所有的 txt 文件
+    txt_files = list_text_files()
+    selected_files = {}
+
+    for i, device in enumerate(devices):
+        try:
+            choice = int(input(f"为设备 {device.serial} 选择文件序号 (1-{len(txt_files)}): "))
+            if choice < 1 or choice > len(txt_files):
+                print("无效的序号。")
+                exit(1)
+        except ValueError:
+            print("输入无效，请输入一个数字。")
+            exit(1)
+
+        selected_files[device] = os.path.join('text', txt_files[choice - 1])
+
+    # 启动多线程，让每个设备执行自己的任务
+    threads = []
+    for device, file_path in selected_files.items():
+        thread = threading.Thread(target=run_on_device, args=(device, file_path))
+        threads.append(thread)
+        thread.start()
+
+    # 等待所有线程执行完毕
+    for thread in threads:
+        thread.join()
 
 if __name__ == "__main__":
     main()
