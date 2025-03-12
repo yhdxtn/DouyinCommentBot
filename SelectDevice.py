@@ -6,7 +6,11 @@ def get_connected_devices():
     output = result.stdout.decode('utf-8')
     
     # 解析 adb devices 的输出
+<<<<<<< HEAD
     lines = output.splitlines()
+=======
+    lines = output.splitlines() 
+>>>>>>> 8f36146 (支持多设备)
     devices = []
     
     # 跳过第一行标题，并获取每个设备的序列号
