@@ -31,7 +31,7 @@ pip install PyQt6
 ## 文件说明
 - `adb_click.py`：主程序，执行自动评论任务。
 - `connect.py`：用于无线连接 ADB 设备。
-- `SelectDevice.py`：选择连接的设备并启动 `scrcpy` 进行投屏。
+- `scrcpy_gui_`：选择连接的设备并启动 `scrcpy` 进行投屏。
 - `CoordinateScript.py`：用于获取合适的屏幕坐标。
 - `text/`：存放评论内容的 `.txt` 文件。
 

@@ -23,9 +23,13 @@ def get_device_resolution(device):
     获取设备的屏幕分辨率 (宽 x 高)
     """
     size = device.shell("wm size").strip()
-    resolution = size.split(":")[1].strip()
-    width, height = map(int, resolution.split("x"))
-    return width, height
+    for line in size.splitlines():
+        if "Physical size" in line:
+            resolution = line.split(":")[1].strip()
+            width, height = map(int, resolution.split("x"))
+            return width, height
+    raise ValueError(f"无法获取设备 {device.serial} 的分辨率，返回内容：{size}")
+
 
 def calculate_click_position(device, standard_x, standard_y, standard_width, standard_height):
     """
@@ -42,7 +46,10 @@ def calculate_click_position(device, standard_x, standard_y, standard_width, sta
         y = 2400
     elif device_width == 720 and device_height == 1560:
         x = 200
-        y = 1470  
+        y = 1470 
+    elif device_width == 1440 and device_height == 3200:
+        x = 433
+        y = 2331  
     else:
         # 默认比例计算
         x = int((standard_x / standard_width) * device_width)
@@ -135,7 +142,7 @@ def run_on_device(device, file_path):
         press_enter_key(device)
 
         # 等待 30 秒后再进行下一次操作
-        time.sleep(40)
+        time.sleep(10)
 
 def main():
     """
