@@ -21,7 +21,7 @@ Windows 用户只需要安装 **Python** 和 **ADB** 即可使用本工具。
   ```sh
   python --version
   pip --version
-````
+
 
 ### 2. 安装 ADB（platform-tools）
 
