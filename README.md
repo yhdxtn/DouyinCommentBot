@@ -1,62 +1,151 @@
-
+````md
 # 抖音直播自动评论工具
 
 ## 介绍
-本项目是一个用于抖音直播自动评论的工具，基于 ADB（Android Debug Bridge）实现。主程序 `adb_click.py` 负责从指定的文本文件 (`.txt`) 中随机选择一行评论，并发送到 Android 设备的剪贴板，再进行自动评论。
+本项目是一个用于 **抖音直播真机剧本** 的自动化评论/弹幕工具，基于 ADB（Android Debug Bridge）实现，支持多设备联动与时间轴弹幕发送。
 
-## 依赖安装
-### 1. 安装 ADB
-确保你的计算机上已安装 ADB，如果没有安装，可以参考以下步骤：
-- Windows 用户：[下载 ADB](https://developer.android.com/studio/releases/platform-tools) 并解压到某个目录，然后将其添加到环境变量。
-- Linux/macOS 用户可以直接使用包管理工具安装：
+- **TXT 自动评论**：主程序 `adb_click.py` 从指定的文本文件 (`.txt`) 中随机选择一行评论，复制到 Android 设备剪贴板并自动发送。
+- **SRT 弹幕自动化 GUI**：按 `.srt` 时间轴发送弹幕，支持多设备、暂停/继续、停止/关闭、显示当前进度秒数、以及从指定秒数跳转开始。
+
+> 说明：本工具可以直接通过 ADB 检测并连接已连接的设备，因此 `connect.py` 可选（可不用）。
+
+---
+
+## 依赖安装（Windows 用户）
+Windows 用户只需要安装 **Python** 和 **ADB** 即可使用本工具。
+
+### 1. 安装 Python
+- 安装 Python 3.9+（建议 3.10/3.11）
+- 安装时勾选 **Add Python to PATH**
+- 验证：
   ```sh
-  sudo apt install scrcpy # Debian/Ubuntu
-  brew install adb      # macOS
-  
+  python --version
+  pip --version
+````
+
+### 2. 安装 ADB（platform-tools）
+
+* 下载并解压 ADB（platform-tools）：[https://developer.android.com/studio/releases/platform-tools](https://developer.android.com/studio/releases/platform-tools)
+* 将解压后的目录加入系统环境变量 `PATH`
+* 验证：
+
+  ```sh
+  adb version
+  adb devices
   ```
 
-### 2. 安装 `clipper.apk`
-在apk目录中`clipper.apk` 用于实现剪贴板功能，在开始使用本工具前，需手动安装并启动它。
+### 3. 安装 Python 依赖
 
-```sh
-adb install clipper.apk
-ice
-```
-若出现粘贴问题大概率是clipper.apk或者没有启动
-安装模块
+在项目根目录执行：
+
 ```sh
 pip install opencv-python numpy ppadb
 pip install PyQt6
 ```
+
+### 4. 安装并启动 `clipper.apk`（剪贴板粘贴必需）
+
+在 apk 目录中 `clipper.apk` 用于实现剪贴板功能，在开始使用本工具前，需手动安装并启动它。
+
+```sh
+adb install clipper.apk
+```
+
+若出现粘贴问题，大概率是 `clipper.apk` 没有安装或没有启动。
+
+---
+
 ## 文件说明
-- `adb_click.py`：主程序，执行自动评论任务。
-- `connect.py`：用于无线连接 ADB 设备。
-- `scrcpy_gui_`：选择连接的设备并启动 `scrcpy` 进行投屏。
-- `CoordinateScript.py`：用于获取合适的屏幕坐标。
-- `text/`：存放评论内容的 `.txt` 文件。
+
+* `adb_click.py`：主程序，执行随机自动评论任务（从 `text/*.txt` 随机抽取评论）。
+* `connect.py`：可选工具（可不用）。程序本身会通过 ADB 自动检测设备并直接执行。
+* `scrcpy_gui_`：选择连接的设备并启动 `scrcpy` 进行投屏。
+* `CoordinateScript.py`：用于获取合适的屏幕坐标。
+* `text/`：存放评论内容的 `.txt` 文件。
+* `srt/`：存放 SRT 字幕文件（用于 SRT 弹幕自动化 GUI，**只从该文件夹读取与切换**）。
+
+---
 
 ## 使用方法
-1. **连接 ADB 设备**
-   - 打开开发者模式，USB调试，并且允许调试
-   - 通过 USB 连接设备，运行 `connect.py` 确保设备已连接。
 
-2. **调整屏幕坐标**
-   由于不同手机的屏幕分辨率不同，需要修改 `adb_click.py` 里的 `click_on_device(device, 100, 1450)` 为正确的坐标。
-   
-   - 运行 `python CoordinateScript.py`。
-   - 在弹出的窗口中调整缩放比例，点击抖音直播弹幕输入框。
-   - 记录弹出的坐标，并替换 `adb_click.py` 中 `click_on_device(device, X, Y)` 的 `X, Y` 值。
+### 1. 连接 ADB 设备（无需 connect.py）
 
-3. **开始自动评论**
-   - 运行 `python adb_click.py`。
-   - 选择要使用的 `.txt` 文件，该文件中的每一行都是一条评论。
-   - 程序会随机选择一条评论，复制到剪贴板，并发送到直播弹幕输入框。
+* 打开开发者模式 → USB 调试 → 允许调试
+* 通过 USB 连接设备
+  （无线设备也可自行执行 `adb connect ip:port` 连接）
+* 程序会自动通过 ADB 检测设备，无需运行 `connect.py`
+
+### 2. 调整屏幕坐标
+
+由于不同手机的屏幕分辨率不同，需要修改程序里的 `click_on_device(device, 100, 1450)` 为正确的坐标。
+
+* 运行：
+
+  ```sh
+  python CoordinateScript.py
+  ```
+* 在弹出的窗口中调整缩放比例，点击抖音直播弹幕输入框
+* 记录弹出的坐标，并替换代码中 `click_on_device(device, X, Y)` 的 `X, Y` 值
+
+### 3. 开始自动评论（TXT 随机评论）
+
+* 运行：
+
+  ```sh
+  python adb_click.py
+  ```
+* 选择要使用的 `.txt` 文件，该文件中的每一行都是一条评论
+* 程序会随机选择一条评论，复制到剪贴板，并发送到直播弹幕输入框
+
+---
+
+## SRT 弹幕自动化 GUI 工具（抖音直播真机剧本）
+
+> 用途：按剧本时间轴（SRT）在抖音直播间进行“真机弹幕/评论”自动发送。
+> 说明：工具只读取 `srt/` 文件夹里的 `.srt` 文件，可在 GUI 内刷新列表并随时切换。
+
+### 功能列表
+
+* **多设备支持**：自动识别 ADB 已连接设备；每台设备可单独选择一个 `.srt` 剧本文件
+* **字幕文件切换（仅 srt 文件夹）**：下拉框直接切换 `srt/` 目录中的字幕文件
+* **刷新字幕列表**：点击【刷新字幕列表】重新扫描 `srt/` 文件夹（无需重启程序也能看到新增的 `.srt`）
+* **暂停/继续**：一键暂停所有设备任务，再点继续恢复
+* **停止**：停止所有设备任务（线程会尽快退出）
+* **关闭**：关闭窗口会先停止所有任务再退出（右上角 X 同样生效）
+* **显示当前进度秒数**：实时显示“当前进度：xx.xx 秒”，暂停不走秒，继续后接着走，停止时保持停止时刻的秒数
+* **跳转起始秒（从指定秒数开始）**：重新开始时可从指定秒数（如 20/50）开始，自动跳过该秒数之前的字幕内容
+
+### 使用步骤
+
+1. 将 `.srt` 剧本文件放入：
+
+   ```text
+   srt/
+   ```
+2. 打开 GUI 工具（运行对应脚本）
+3. 如新增/替换字幕文件，点击【刷新字幕列表】
+4. 为每台设备选择对应 `.srt` 剧本
+5. 如需从某个时间点继续，填写 **起始秒(跳转)**（例如 `20` 或 `50`），再点【开始自动化】
+6. 运行期间可随时：
+
+   * 点【暂停/继续】控制全局暂停
+   * 点【停止】终止任务
+   * 查看“当前进度：xx.xx 秒”确认跑到哪个时间点
+
+---
 
 ## 注意事项
-- `clipper.apk` 必须安装并运行，否则无法使用剪贴板功能，只能同一条评论。
-- 设备分辨率不同，需要使用 `CoordinateScript.py` 重新获取正确的点击坐标。
-- 运行 `adb_click.py` 时请确保设备已连接，并且在抖音直播页面。
+
+* `clipper.apk` 必须安装并运行，否则无法使用剪贴板功能（可能无法粘贴或表现异常）。
+* 设备分辨率不同，需要使用 `CoordinateScript.py` 重新获取正确的点击坐标。
+* 运行脚本时请确保设备已连接，并且在抖音直播页面。
+* SRT 工具只从 `srt/` 文件夹读取字幕：新增字幕后记得点击【刷新字幕列表】。
+
+---
 
 ## 许可证
+
 本项目仅供学习交流使用，不得用于非法用途。
 
+```
+```
